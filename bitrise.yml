@@ -36,6 +36,7 @@ workflows:
             ./gradlew test --continue
     - deploy-to-bitrise-io@2: {}
 
+  # Branch build of Android Unit Test: reads test-selection.json itself, skips when nothing is selected.
   selective_tests:
     steps:
     - git-clone@8: {}
@@ -46,6 +47,37 @@ workflows:
         title: Test Selection
         inputs:
         # Push builds have no BITRISEIO_GIT_BRANCH_DEST; diff against main explicitly.
+        - base_ref: main
+        - project_type: gradle
+        - mode: enforce
+        - on_unknown_file: full
+        - on_error: full
+        - verbose: "true"
+    - git::https://github.com/bitrise-steplib/bitrise-step-android-unit-test.git@test-selection:
+        inputs:
+        - project_location: $PROJECT_LOCATION
+        - variant: $VARIANT
+        - test_selection: $BITRISE_TEST_SELECTION_PATH
+        - on_empty_selection: skip
+    - script@1:
+        title: Show selection
+        is_always_run: true
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ -n "${BITRISE_TEST_SELECTION_PATH:-}" ]; then cat "$BITRISE_TEST_SELECTION_PATH"; fi
+    - deploy-to-bitrise-io@2: {}
+
+  # The script-based consumer, kept for comparison.
+  selective_tests_script:
+    steps:
+    - git-clone@8: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - git::https://github.com/bitrise-steplib/bitrise-step-test-selection.git@main:
+        title: Test Selection
+        inputs:
         - base_ref: main
         - project_type: gradle
         - mode: enforce
