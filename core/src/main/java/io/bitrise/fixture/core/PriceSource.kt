@@ -12,3 +12,5 @@ class StaticPriceSource : PriceSource {
         "pear" to Money(95, "EUR"),
     )
 }
+
+// try/core: touched to exercise selective testing
