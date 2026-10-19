@@ -12,3 +12,5 @@ data class Money(val cents: Long, val currency: String) {
         return "$whole.${fraction.toString().padStart(2, '0')} $currency"
     }
 }
+
+// try/domain: shared leaf module, expect everything
