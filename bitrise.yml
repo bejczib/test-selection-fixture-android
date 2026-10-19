@@ -4,7 +4,8 @@ project_type: android
 
 meta:
   bitrise.io:
-    stack: linux-docker-android-22.04
+    stack: ubuntu-noble-24.04-bitrise-2025-android
+    machine_type_id: elite
 
 app:
   envs:
@@ -23,6 +24,9 @@ workflows:
   full_tests:
     steps:
     - git-clone@8: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: $PROJECT_LOCATION/gradlew
     - script@1:
         title: Run all unit tests
         inputs:
@@ -35,6 +39,9 @@ workflows:
   selective_tests:
     steps:
     - git-clone@8: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: $PROJECT_LOCATION/gradlew
     - git::https://github.com/bitrise-steplib/bitrise-step-test-selection.git@main:
         title: Test Selection
         inputs:
