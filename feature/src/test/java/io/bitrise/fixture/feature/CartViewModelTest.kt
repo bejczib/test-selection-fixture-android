@@ -19,3 +19,5 @@ class CartViewModelTest {
         assertNull(vm.total)
     }
 }
+
+// try/feature-tests: test file only
