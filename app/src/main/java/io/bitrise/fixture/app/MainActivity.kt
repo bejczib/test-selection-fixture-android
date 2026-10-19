@@ -11,7 +11,7 @@ class MainActivity : Activity() {
         val vm = CartViewModel.demo()
         vm.load()
         setContentView(TextView(this).apply {
-            text = "Total: ${vm.total?.formatted() ?: "-"} (${AppConfig.currency})"
+            text = "Total: ${vm.totalFormatted} (${AppConfig.currency})"
         })
     }
 }

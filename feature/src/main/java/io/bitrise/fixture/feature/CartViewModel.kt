@@ -15,6 +15,10 @@ class CartViewModel(private val source: PriceSource) {
     val total: Money?
         get() = lines.map { it.second }.reduceOrNull { acc, m -> acc + m }
 
+    /** String form so that the app module never needs the domain types on its classpath. */
+    val totalFormatted: String
+        get() = total?.formatted() ?: "-"
+
     companion object {
         /** Keeps the app module free of a direct core dependency. */
         fun demo(): CartViewModel = CartViewModel(StaticPriceSource())
