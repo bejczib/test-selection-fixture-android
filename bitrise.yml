@@ -1,0 +1,71 @@
+format_version: "17"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: android
+
+meta:
+  bitrise.io:
+    stack: linux-docker-android-22.04
+
+app:
+  envs:
+  - PROJECT_LOCATION: .
+  - MODULE: app
+  - VARIANT: debug
+
+trigger_map:
+- push_branch: "*"
+  workflow: selective_tests
+- pull_request_target_branch: main
+  workflow: selective_tests
+
+workflows:
+  # Baseline: every module's unit tests. Compare its Test Reports with selective_tests.
+  full_tests:
+    steps:
+    - git-clone@8: {}
+    - script@1:
+        title: Run all unit tests
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -euxo pipefail
+            ./gradlew test --continue
+    - deploy-to-bitrise-io@2: {}
+
+  selective_tests:
+    steps:
+    - git-clone@8: {}
+    - git::https://github.com/bitrise-steplib/bitrise-step-test-selection.git@main:
+        title: Test Selection
+        inputs:
+        # Push builds have no BITRISEIO_GIT_BRANCH_DEST; diff against main explicitly.
+        - base_ref: main
+        - project_type: gradle
+        - mode: enforce
+        - on_unknown_file: full
+        - on_error: full
+        - verbose: "true"
+    - script@1:
+        title: Run selected unit tests
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -euo pipefail
+            echo "mode: ${BITRISE_TEST_SELECTION_MODE:-?}  summary: ${BITRISE_TEST_SELECTION_SUMMARY:-?}"
+            if [ -z "${BITRISE_TEST_SELECTION_GRADLE_TASKS_PATH:-}" ]; then
+              echo "no task list: running every unit test"
+              set -x
+              ./gradlew test --continue
+            else
+              echo "selected tasks:"; cat "$BITRISE_TEST_SELECTION_GRADLE_TASKS_PATH"
+              set -x
+              ./gradlew $(cat "$BITRISE_TEST_SELECTION_GRADLE_TASKS_PATH") --continue
+            fi
+    - script@1:
+        title: Show selection
+        is_always_run: true
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ -n "${BITRISE_TEST_SELECTION_PATH:-}" ]; then cat "$BITRISE_TEST_SELECTION_PATH"; fi
+    - deploy-to-bitrise-io@2: {}
