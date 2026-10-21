@@ -114,6 +114,7 @@ workflows:
   shadow_tests:
     envs:
     - BITRISE_TEST_SELECTION_CONFIG_JSON: '{"mode":"shadow","base_ref":"main"}'
+    - BITRISE_TEST_SELECTION_SHADOW_VERBOSE: 'true'
     steps:
     - git-clone@8: {}
     - install-missing-android-tools@3:
@@ -124,11 +125,5 @@ workflows:
         inputs:
         - project_location: "$PROJECT_LOCATION"
         - variant: "$VARIANT"
-    - script@1:
-        title: Show shadow reports
+    - deploy-to-bitrise-io@2:
         is_always_run: true
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            find "$BITRISE_TEST_DEPLOY_DIR" -name test-selection.json | sort | while read -r f; do echo "== $f"; cat "$f"; echo; done
-    - deploy-to-bitrise-io@2: {}
