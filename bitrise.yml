@@ -127,3 +127,22 @@ workflows:
         - variant: "$VARIANT"
     - deploy-to-bitrise-io@2:
         is_always_run: true
+
+  # What the Monolith sends for a default-branch build: force_full_run, so the steps skip the
+  # analysis and only report a forced full run.
+  shadow_tests_forced:
+    envs:
+    - BITRISE_TEST_SELECTION_CONFIG_JSON: '{"mode":"shadow","force_full_run":true,"force_full_run_reason":"builds of the default branch run every test"}'
+    - BITRISE_TEST_SELECTION_SHADOW_VERBOSE: 'true'
+    steps:
+    - git-clone@8: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: "$PROJECT_LOCATION/gradlew"
+    - git::https://github.com/bitrise-steplib/bitrise-step-android-unit-test.git@test-selection-shadow:
+        title: Android Unit Test (shadow branch)
+        inputs:
+        - project_location: "$PROJECT_LOCATION"
+        - variant: "$VARIANT"
+    - deploy-to-bitrise-io@2:
+        is_always_run: true
